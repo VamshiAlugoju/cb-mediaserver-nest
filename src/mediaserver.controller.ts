@@ -1,26 +1,109 @@
-import { Controller, Get } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { MediaService } from './mediaserver.service';
 import { AppService } from './main.service';
-import { MessagePattern } from '@nestjs/microservices';
+import { StartCallDto } from './dto/startcall.dto';
+import { AnswerCallDto, clearParticipantDto } from './dto/answercall.dto';
+import { CloseRoomDto } from './dto/closeRoom.dto';
+import { TransportService } from './transport.service';
+import {
+  CreateTransportDto,
+  ConnectTransportDto,
+  ConsumeDto,
+  ProduceDto,
+  UnpauseDto,
+} from './dto/transport.dto';
 
-@Controller()
+@Controller('mediaserver')
 export class AppController {
   constructor(
     private readonly mediaService: MediaService,
     private readonly appService: AppService,
+    private readonly transportService: TransportService,
   ) {}
 
-  @MessagePattern('gethello')
-  getHello(): string {
-    return this.mediaService.getHello();
+  @Post('start_call')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  startCall(@Body() data: StartCallDto) {
+    return this.mediaService.startCall(data);
   }
 
-  @MessagePattern('get_instance_details')
+  @Post('answer_call')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  answerCall(@Body() data: AnswerCallDto) {
+    return this.mediaService.answerCall(data);
+  }
+
+  @Post('clear_participant')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  clearParticipant(@Body() data: clearParticipantDto) {
+    return this.mediaService.clearParticipant(data);
+  }
+
+  @Post('close_room')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  closeRoom(@Body() data: CloseRoomDto) {
+    return this.mediaService.closeRoom(data);
+  }
+
+  @Post('close_all_rooms')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  closeAllRooms() {
+    return this.mediaService.closeAllRooms();
+  }
+
+  @Get('get_instance_details')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
   getInstanceDetails(): any {
     return this.appService.getInstanceDetails();
   }
-  @Get()
-  getthis() {
-    return 'this';
+
+  // 🔹 Transport Routes (Now using TransportService)
+  @Post('create_producer_transport')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  createProducerTransport(@Body() data: CreateTransportDto) {
+    return this.transportService.createProducerTransport(data);
+  }
+
+  @Post('create_consumer_transport')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  createConsumerTransport(@Body() data: CreateTransportDto) {
+    return this.transportService.createConsumerTransport(data);
+  }
+
+  @Post('connect_producer_transport')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  connectProducerTransport(@Body() data: ConnectTransportDto) {
+    return this.transportService.connectProducerTransport(data);
+  }
+
+  @Post('connect_consumer_transport')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  connectConsumerTransport(@Body() data: ConnectTransportDto) {
+    return this.transportService.connectConsumerTransport(data);
+  }
+
+  @Post('produce')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  produce(@Body() data: ProduceDto) {
+    return this.transportService.produce(data);
+  }
+
+  @Post('consume')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  consume(@Body() data: ConsumeDto) {
+    return this.transportService.consume(data);
+  }
+
+  @Post('unpause_consumer')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  unpauseConsumer(@Body() data: UnpauseDto) {
+    return this.transportService.unpauseConsumer(data);
   }
 }
