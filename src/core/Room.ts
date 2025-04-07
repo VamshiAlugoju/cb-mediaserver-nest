@@ -90,7 +90,7 @@ export default class Room implements IRoom {
 
     this.workerId = workerId;
     this.isActive = true;
-    this.log(JSON.stringify(this));
+    this.startLogging();
   }
 
   private logger = new Logger('Room');
@@ -142,7 +142,6 @@ export default class Room implements IRoom {
     this.participants.delete(participantId);
     this.updateActivity();
 
-    // Optionally remove associated transports, producers, consumers
     this.webrtcTransports.forEach((transport, id) => {
       if (transport.appData?.participantId === participantId) {
         transport.close();

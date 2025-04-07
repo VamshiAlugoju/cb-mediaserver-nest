@@ -76,4 +76,6 @@ export class RoomManager implements IRoomManager {
       };
     }
   }
+
+  logRooms() {}
 }
