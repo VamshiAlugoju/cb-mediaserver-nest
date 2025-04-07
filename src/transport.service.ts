@@ -166,7 +166,6 @@ export class TransportService {
       participantId,
       producerClientId,
       rtpCapabilities,
-      name,
     } = data;
     const room = await this.validateRoom(roomId);
     const participant = await this.validateParticipant(participantId, room);

@@ -2,11 +2,13 @@ require('dotenv').config();
 import { NestFactory } from '@nestjs/core';
 import { MediaserverModule } from './mediaserver.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { LoggingInterceptor } from './Loggerinterceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(MediaserverModule);
 
   app.enableShutdownHooks();
+  app.useGlobalInterceptors(new LoggingInterceptor());
   // Swagger Config
   const config = new DocumentBuilder()
     .setTitle('Media server Api')

@@ -97,18 +97,8 @@ export class ConsumeDto {
   producerClientId: string;
 
   @ApiProperty({ description: 'RTP capabilities of the consumer' })
-  @IsObject()
   @IsNotEmpty()
-  rtpCapabilities: Record<string, any>;
-
-  @ApiProperty({
-    description: 'Optional name for the consumer',
-    example: 'John Doe',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  name?: string;
+  rtpCapabilities: any;
 }
 
 export class UnpauseDto {

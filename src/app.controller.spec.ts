@@ -16,3 +16,9 @@ describe('AppController', () => {
 
   describe('root', () => {});
 });
+
+/* 
+Rtc Provider :  -All Media soup logic
+-- listen for events ( new Produer )
+
+*/
