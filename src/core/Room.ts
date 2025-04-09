@@ -123,9 +123,9 @@ export default class Room implements IRoom {
 
   startLogging() {
     //log the room stats every 30 seconds
-    this.timerId = setInterval(() => {
-      this.log(this.getRoomStats());
-    }, 30000);
+    // this.timerId = setInterval(() => {
+    //   this.log(this.getRoomStats());
+    // }, 30000);
   }
 
   async addParticipant(participant: Participant): Promise<void> {
