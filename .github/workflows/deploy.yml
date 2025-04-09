@@ -1,0 +1,28 @@
+name: Deploy cb-mediaserver-nest
+
+on:
+  push:
+    branches: [ master ]  # Triggers on push to master branch
+  workflow_dispatch:      # Also allows manual triggering
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Install sshpass
+      run: sudo apt-get install -y sshpass
+        
+    - name: Deploy via SSH with password
+      env:
+        SSH_PASS: ${{ secrets.SERVER_PASSWORD }}
+      run: |
+        sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no root@161.35.37.230 '
+          cd cb-mediaserver-nest
+          git pull
+          docker network create app-network || true
+          docker compose down
+          docker compose build
+          docker compose up -d
+          echo "Deployment completed"
+        '
