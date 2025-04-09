@@ -46,7 +46,7 @@ export class TransportService {
     const room = await this.validateRoom(roomId);
     const participant = await this.validateParticipant(participantId, room);
     const PUBLIC_IP = process.env.MEDIASOUP_PUBLIC_IP;
-
+	console.log(process.env.MEDIASOUP_PUBLIC_IP, "process.env.MEDIASOUP_PUBLIC_IP")
     const transport = await room.createTransportForParticipant(
       participant,
       'producer',
