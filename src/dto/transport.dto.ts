@@ -93,7 +93,7 @@ export class ConsumeDto {
     example: 'client-abc123',
   })
   @IsString()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   producerClientId: string;
 
   @ApiProperty({ description: 'RTP capabilities of the consumer' })
