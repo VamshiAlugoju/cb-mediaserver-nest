@@ -19,6 +19,7 @@ import {
   ProduceDto,
   UnpauseDto,
 } from './dto/transport.dto';
+import { CreateroomDto } from './dto/createRoom.dto';
 
 @Controller('mediaserver')
 export class AppController {
@@ -111,5 +112,11 @@ export class AppController {
   @UsePipes(new ValidationPipe({ whitelist: true }))
   unpauseConsumer(@Body() data: UnpauseDto) {
     return this.transportService.unpauseConsumer(data);
+  }
+
+  @Post('create_room')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  cretaeRoom(@Body() data: CreateroomDto) {
+    return this.mediaService.createRoom(data);
   }
 }
