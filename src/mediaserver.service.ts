@@ -8,7 +8,7 @@ import Participant from './core/Participant';
 import { AppService } from './main.service';
 import { RoomManager } from './core/RoomManager';
 import { StartCallDto } from './dto/startcall.dto';
-import { AnswerCallDto } from './dto/answercall.dto';
+import { AnswerCallDto, ShareScreenDto } from './dto/answercall.dto';
 import Room from './core/Room';
 
 @Injectable()
@@ -114,5 +114,11 @@ export class MediaService {
 
   async closeAllRooms() {
     await this.RoomManagerInstance.closeAllRooms();
+  }
+
+  async shareScreen(body: ShareScreenDto) {
+    const { userId, roomId, participantId } = body;
+    const participant = new Participant(userId, roomId, participantId);
+    return;
   }
 }

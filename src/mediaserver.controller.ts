@@ -9,7 +9,7 @@ import {
 import { MediaService } from './mediaserver.service';
 import { AppService } from './main.service';
 import { StartCallDto } from './dto/startcall.dto';
-import { AnswerCallDto, clearParticipantDto } from './dto/answercall.dto';
+import { AnswerCallDto, clearParticipantDto, ShareScreenDto } from './dto/answercall.dto';
 import { CloseRoomDto } from './dto/closeRoom.dto';
 import { TransportService } from './transport.service';
 import {
@@ -56,6 +56,12 @@ export class AppController {
   @UsePipes(new ValidationPipe({ whitelist: true }))
   closeAllRooms() {
     return this.mediaService.closeAllRooms();
+  }
+
+  @Post('share_screen')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  shareScreen(@Body() body: ShareScreenDto) {
+    return this.mediaService.shareScreen(body);
   }
 
   @Get('get_instance_details')
