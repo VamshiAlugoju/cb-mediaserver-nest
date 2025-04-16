@@ -10,6 +10,7 @@ import { RoomManager } from './core/RoomManager';
 import { StartCallDto } from './dto/startcall.dto';
 import { AnswerCallDto, ShareScreenDto } from './dto/answercall.dto';
 import Room from './core/Room';
+import { CreateroomDto } from './dto/createRoom.dto';
 
 @Injectable()
 export class MediaService {
@@ -109,6 +110,31 @@ export class MediaService {
     return {
       status: true,
       roomId,
+    };
+  }
+
+  public async createRoom(data: CreateroomDto) {
+    const { callId, userId, roomId } = data;
+    const prevRoom = await this.RoomManagerInstance.getRoomById(roomId);
+    if (prevRoom) {
+      throw new ConflictException(
+        `A Room with roomId:${roomId} already exists.`,
+      );
+    }
+    const room = await this.RoomManagerInstance.createRoom(
+      userId,
+      callId,
+      roomId,
+    );
+    const rtpCapabilities = room.getRtpCapabilities();
+    const serverDetails = this.appService.getInstanceDetails();
+
+    this.log(`Caller ${userId} added to room ${room.roomId}`);
+    return {
+      rtpCapabilities,
+      roomId: room.roomId,
+      workerId: room.workerId,
+      serverDetails,
     };
   }
 
