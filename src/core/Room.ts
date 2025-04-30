@@ -24,6 +24,7 @@ interface IRoom {
   consumers: Map<string, types.Consumer<types.AppData>>;
   webrtcTransports: Map<string, types.WebRtcTransport<types.AppData>>;
   lastActive: number;
+  audioObserver: types.AudioLevelObserver
 
   // Methods
   addOwner: (owner: Participant) => void;
@@ -73,16 +74,19 @@ export default class Room implements IRoom {
   public pipeTransports: Map<string, types.PipeTransport<types.AppData>> = // New property
     new Map();
   public lastActive: number = Date.now();
+  public audioObserver: types.AudioLevelObserver<types.AppData>;
   private timerId: NodeJS.Timeout | null = null;
   private idleTimerId: NodeJS.Timeout | null = null;
   private idleMinutes: number = 0;
 
   private roomIdleLimit = process.env.ROOMIDLELIMIT || 10;
+  private audioprs = 0;
   constructor(
     router: types.Router,
     roomId: string,
     callId: string,
     workerId: string,
+    audioLevelObserver: types.AudioLevelObserver<types.AppData>
   ) {
     this.router = router;
     this.roomId = roomId;
@@ -91,10 +95,21 @@ export default class Room implements IRoom {
     this.workerId = workerId;
     this.isActive = true;
     this.startLogging();
+    this.audioObserver = audioLevelObserver
+    this.registerEvents()
   }
 
   private logger = new Logger('Room');
 
+  registerEvents() {
+    this.audioObserver.observer.on("volumes", (data) => {
+      this.logger.warn(`volumes emitted  `)
+      console.log(data.map(item => ({ id: item.producer.id, volume: item.volume })))
+    })
+    this.audioObserver.observer.on("silence", () => {
+      this.logger.warn(`silence emitted `)
+    })
+  }
   log(data: any) {
     this.logger.log(data);
   }
@@ -204,6 +219,11 @@ export default class Room implements IRoom {
 
   async addProducer(producer: types.Producer) {
     this.producers.set(producer.id, producer);
+    if (producer.kind === "audio") {
+      await this.audioObserver.addProducer({ producerId: producer.id })
+      this.audioprs++;
+      console.log(this.audioprs, ">>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    }
   }
   async getProducer(producerId: string) {
     return this.producers.get(producerId);
@@ -298,6 +318,7 @@ export default class Room implements IRoom {
     this.consumers.clear();
     this.webrtcTransports.forEach((transport) => transport.close());
     this.webrtcTransports.clear();
+    this.audioObserver.close()
     this.router.close();
     this.pipeTransports.forEach((transport) => transport.close());
     this.timerId && clearInterval(this.timerId);

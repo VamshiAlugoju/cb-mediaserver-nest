@@ -7,7 +7,7 @@ import { Injectable, Logger } from '@nestjs/common';
 @Injectable()
 export class RoomManager implements IRoomManager {
   public rooms: Map<string, Room> = new Map();
-  constructor() {}
+  constructor() { }
   private logger = new Logger('RoomManager');
   log(message: any) {
     this.logger.log(message);
@@ -36,14 +36,17 @@ export class RoomManager implements IRoomManager {
         },
       ],
     });
-
-    const room = new Room(router, roomId, callId, MediaWorker.workerId);
+    const audioLevelObserver = await router.createAudioLevelObserver({
+      interval: 2 * 1000,
+      threshold: -127
+    })
+    const room = new Room(router, roomId, callId, MediaWorker.workerId, audioLevelObserver);
     this.rooms.set(roomId, room);
     this.registerRoom();
     return room;
   }
 
-  private registerRoom() {}
+  private registerRoom() { }
   async getRoomById(roomId: string): Promise<Room | undefined> {
     return this.rooms.get(roomId);
   }
@@ -77,5 +80,5 @@ export class RoomManager implements IRoomManager {
     }
   }
 
-  logRooms() {}
+  logRooms() { }
 }
