@@ -18,6 +18,7 @@ export default class Participant implements IParticipant {
     audio: false,
     video: false,
   };
+  dataConsumer: types.DataConsumer<types.AppData>;
   constructor(userId: string, roomId: string, uniqueId: string) {
     this.roomId = roomId;
     this.userId = userId;
@@ -26,7 +27,7 @@ export default class Participant implements IParticipant {
   }
   private logger = new Logger('Participant');
 
-  logData() {}
+  logData() { }
 
   log(data: any) {
     this.logger.log(data);
@@ -41,16 +42,22 @@ export default class Participant implements IParticipant {
   getProducerTransport() {
     return this.producerTransport;
   }
+  addDataConsumer(dataConsumer: types.DataConsumer) {
+    this.dataConsumer = dataConsumer;
+  }
   getConsumerTransport() {
     return this.consumerTransport;
   }
+  getDataConsumer() {
+    return this.dataConsumer;
+  }
   async cleanUp() {
     if (this.producerTransport) {
-      await this.producerTransport.close();
+      this.producerTransport.close();
       this.producerTransport = null;
     }
     if (this.consumerTransport) {
-      await this.consumerTransport.close();
+      this.consumerTransport.close();
       this.consumerTransport = null;
     }
     this.producers.audio?.close();
