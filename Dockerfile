@@ -1,11 +1,11 @@
-FROM node:18-bullseye
+FROM node:20-bullseye
 
 # Install system dependencies required by mediasoup
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
     python3 \
-    python3-pip \  
+    python3-pip \
     git \
     libsrtp2-dev \
     libssl-dev \
