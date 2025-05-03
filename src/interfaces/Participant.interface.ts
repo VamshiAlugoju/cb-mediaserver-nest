@@ -7,6 +7,8 @@ export interface IParticipant {
   consumerTransport: types.WebRtcTransport | null;
   producers: IClientProducer;
   consumers: Map<string, types.Consumer>;
+  dataConsumer: types.DataConsumer;
+  getDataConsumer: () => types.DataConsumer;
   getProducerTransport: () => types.WebRtcTransport | null;
   getConsumerTransport: () => types.WebRtcTransport | null;
   addProducerTransport: (transport: types.WebRtcTransport) => void;

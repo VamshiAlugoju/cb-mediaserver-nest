@@ -101,6 +101,23 @@ export class ConsumeDto {
   rtpCapabilities: any;
 }
 
+export class DataConsumerDto {
+  @ApiProperty({ description: 'ID of the room', example: 'room-12345' })
+  @IsString()
+  @IsNotEmpty()
+  roomId: string;
+
+
+  @ApiProperty({
+    description: 'ID of the participant',
+    example: 'participant-67890',
+  })
+  @IsString()
+  @IsNotEmpty()
+  participantId: string;
+
+}
+
 export class UnpauseDto {
   @ApiProperty({
     description: 'ID of the consumer',

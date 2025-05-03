@@ -37,8 +37,9 @@ export class RoomManager implements IRoomManager {
       ],
     });
     const audioLevelObserver = await router.createAudioLevelObserver({
-      interval: 2 * 1000,
-      threshold: -127
+      interval: 500,
+      threshold: -126,
+      maxEntries: 10
     })
     const room = new Room(router, roomId, callId, MediaWorker.workerId, audioLevelObserver);
     this.rooms.set(roomId, room);

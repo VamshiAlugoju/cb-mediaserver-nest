@@ -19,7 +19,7 @@ export class MediaService {
   constructor(
     private readonly RoomManagerInstance: RoomManager,
     private readonly appService: AppService,
-  ) {}
+  ) { }
 
   private log(message: string) {
     this.logger.log(message);
@@ -146,5 +146,10 @@ export class MediaService {
     const { userId, roomId, participantId } = body;
     const participant = new Participant(userId, roomId, participantId);
     return;
+  }
+
+  async getDataProducerData(roomId: string) {
+    const room = await this.validateRoom(roomId)
+    return room.getDataProducerData()
   }
 }

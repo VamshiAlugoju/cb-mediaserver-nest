@@ -55,6 +55,10 @@ interface IRoom {
     targetRouter: types.Router,
   ) => Promise<void>;
   removePipeTransport: (pipeTransportId: string) => Promise<void>;
+  getDataProducerData(): {
+    id: string;
+    sctpStreamParameters: types.SctpStreamParameters | undefined;
+  }
 }
 
 export default class Room implements IRoom {
@@ -78,7 +82,8 @@ export default class Room implements IRoom {
   private timerId: NodeJS.Timeout | null = null;
   private idleTimerId: NodeJS.Timeout | null = null;
   private idleMinutes: number = 0;
-
+  private dataTransport: types.WebRtcTransport
+  private dataProducer: types.DataProducer<types.AppData>
   private roomIdleLimit = process.env.ROOMIDLELIMIT || 10;
   private audioprs = 0;
   constructor(
@@ -96,20 +101,57 @@ export default class Room implements IRoom {
     this.isActive = true;
     this.startLogging();
     this.audioObserver = audioLevelObserver
+    this.createDataTransport()
     this.registerEvents()
+
   }
 
   private logger = new Logger('Room');
 
-  registerEvents() {
-    this.audioObserver.observer.on("volumes", (data) => {
-      this.logger.warn(`volumes emitted  `)
-      console.log(data.map(item => ({ id: item.producer.id, volume: item.volume })))
+  async registerEvents() {
+    this.audioObserver.on("volumes", async (data) => {
+      const payload = JSON.stringify({
+        type: 'audio-volumes',
+        volumes: data.map(v => ({
+          producerId: v.producer.id,
+          volume: v.volume,
+        })),
+      });
+
+      try {
+        this.dataProducer.send(payload)
+      } catch (err) {
+        this.logger.error(`Failed to send volume data: ${err.message}`);
+      }
     })
-    this.audioObserver.observer.on("silence", () => {
+    this.audioObserver.on("silence", () => {
       this.logger.warn(`silence emitted `)
     })
   }
+
+  async createDataTransport() {
+    const PUBLIC_IP = process.env.MEDIASOUP_PUBLIC_IP;
+    this.dataTransport = await this.router.createWebRtcTransport({
+      listenIps: [{ ip: '0.0.0.0', announcedIp: PUBLIC_IP }],
+      enableUdp: true,
+      enableTcp: true,
+      preferUdp: true,
+      enableSctp: true,
+      numSctpStreams: { OS: 1024, MIS: 1024 },
+      maxSctpMessageSize: 262144,
+    })
+    this.dataProducer = await this.dataTransport.produceData({
+      label: 'volume',
+      sctpStreamParameters: { streamId: 0, ordered: true, }
+    })
+
+  }
+
+
+  getDataProducerData() {
+    return { id: this.dataProducer.id, sctpStreamParameters: this.dataProducer.sctpStreamParameters }
+  }
+
   log(data: any) {
     this.logger.log(data);
   }
@@ -221,8 +263,6 @@ export default class Room implements IRoom {
     this.producers.set(producer.id, producer);
     if (producer.kind === "audio") {
       await this.audioObserver.addProducer({ producerId: producer.id })
-      this.audioprs++;
-      console.log(this.audioprs, ">>>>>>>>>>>>>>>>>>>>>>>>>>>")
     }
   }
   async getProducer(producerId: string) {
@@ -319,6 +359,8 @@ export default class Room implements IRoom {
     this.webrtcTransports.forEach((transport) => transport.close());
     this.webrtcTransports.clear();
     this.audioObserver.close()
+    this.dataProducer.close();
+    this.dataTransport.close();
     this.router.close();
     this.pipeTransports.forEach((transport) => transport.close());
     this.timerId && clearInterval(this.timerId);

@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   UsePipes,
   ValidationPipe,
@@ -18,6 +19,7 @@ import {
   ConsumeDto,
   ProduceDto,
   UnpauseDto,
+  DataConsumerDto,
 } from './dto/transport.dto';
 import { CreateroomDto } from './dto/createRoom.dto';
 
@@ -27,7 +29,7 @@ export class AppController {
     private readonly mediaService: MediaService,
     private readonly appService: AppService,
     private readonly transportService: TransportService,
-  ) {}
+  ) { }
 
   @Post('start_call')
   @UsePipes(new ValidationPipe({ whitelist: true }))
@@ -118,5 +120,10 @@ export class AppController {
   @UsePipes(new ValidationPipe({ whitelist: true }))
   cretaeRoom(@Body() data: CreateroomDto) {
     return this.mediaService.createRoom(data);
+  }
+  @Post('ConsumeData')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  getDataProducer(@Body() data: DataConsumerDto) {
+    return this.transportService.consumeDataConsumer(data);
   }
 }
