@@ -22,7 +22,7 @@ export class LoggingInterceptor implements NestInterceptor {
     this.logger.log(`🚀 Incoming Request: ${method} ${url}`);
     return next.handle().pipe(
       tap((data) => {
-        return this.logger.log(`✅ Response Sent: ${JSON.stringify(data)}`);
+        return this.logger.log(`✅ Response Sent: ${JSON.stringify(data).slice(0 ,100)}`);
       }),
       catchError((err) => {
         throw err;

@@ -279,6 +279,7 @@ export default class Room implements IRoom {
       kind: 'audio' | 'video';
       rtpParameters: types.RtpParameters;
       producerClientId: string;
+      isScreenSharer : boolean 
     };
     const participants = Array.from(this.participants.values());
     const initialProducers: MediasoupProducer[] = [];
@@ -292,6 +293,7 @@ export default class Room implements IRoom {
           kind: audioProducer.kind,
           rtpParameters: audioProducer.rtpParameters,
           producerClientId: participant.participantId,
+          isScreenSharer : participant.isScreenSharer
         });
       }
       if (videoProducer) {
@@ -301,8 +303,10 @@ export default class Room implements IRoom {
           kind: videoProducer.kind,
           rtpParameters: videoProducer.rtpParameters,
           producerClientId: participant.participantId,
+           isScreenSharer : participant.isScreenSharer
         });
       }
+
     });
     return initialProducers;
   }

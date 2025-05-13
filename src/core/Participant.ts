@@ -8,6 +8,7 @@ import {
 export default class Participant implements IParticipant {
   participantId: string;
   clonedParticipantId?: string;
+  isScreenSharer :boolean = false ;
   userId: string;
   roomId: string;
   producerTransport: types.WebRtcTransport<types.AppData> | null = null;
@@ -123,7 +124,8 @@ export default class Participant implements IParticipant {
     clone.producerTransport = this.producerTransport;
     clone.consumerTransport = this.consumerTransport;
     clone.isConnected = true;
-
+    clone.clonedParticipantId = this.participantId;
+    clone.isScreenSharer = true;
     return clone;
   }
   stopScreenSharing() {
