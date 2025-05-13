@@ -14,11 +14,13 @@ import {
   ConsumeDto,
   UnpauseDto,
   DataConsumerDto,
+  CloneParticipantDto,
+  StopScreenSharingDto,
 } from './dto/transport.dto';
 
 @Injectable()
 export class TransportService {
-  constructor(private readonly RoomManager: RoomManager) { }
+  constructor(private readonly RoomManager: RoomManager) {}
 
   private async validateRoom(roomId: string): Promise<Room> {
     const room = await this.RoomManager.getRoomById(roomId);
@@ -47,7 +49,10 @@ export class TransportService {
     const room = await this.validateRoom(roomId);
     const participant = await this.validateParticipant(participantId, room);
     const PUBLIC_IP = process.env.MEDIASOUP_PUBLIC_IP;
-    console.log(process.env.MEDIASOUP_PUBLIC_IP, "process.env.MEDIASOUP_PUBLIC_IP")
+    console.log(
+      process.env.MEDIASOUP_PUBLIC_IP,
+      'process.env.MEDIASOUP_PUBLIC_IP',
+    );
     const transport = await room.createTransportForParticipant(
       participant,
       'producer',
@@ -137,7 +142,6 @@ export class TransportService {
         enableSctp: true,
         numSctpStreams: { OS: 1024, MIS: 1024 },
         maxSctpMessageSize: 262144,
-
       },
     );
 
@@ -146,7 +150,7 @@ export class TransportService {
       iceParameters: transport.iceParameters,
       iceCandidates: transport.iceCandidates,
       dtlsParameters: transport.dtlsParameters,
-      sctpParameters: transport.sctpParameters
+      sctpParameters: transport.sctpParameters,
     };
     return {
       transport: transportRes,
@@ -227,29 +231,52 @@ export class TransportService {
   }
 
   async consumeDataConsumer({ roomId, participantId }: DataConsumerDto) {
-    const room = await this.validateRoom(roomId)
-    const participant = await this.validateParticipant(participantId, room)
-    const consumerTransport = participant.getConsumerTransport()
-    const { id: dataProducerId, sctpStreamParameters } = room.getDataProducerData()
+    const room = await this.validateRoom(roomId);
+    const participant = await this.validateParticipant(participantId, room);
+    const consumerTransport = participant.getConsumerTransport();
+    const { id: dataProducerId, sctpStreamParameters } =
+      room.getDataProducerData();
     const consumer = await consumerTransport?.consumeData({
       dataProducerId: dataProducerId,
       ordered: true,
       paused: false,
-
-    })
+    });
     if (!consumer) {
       throw new Error('Failed to create consumer');
     }
 
     participant.addDataConsumer(consumer);
-    console.log(consumer.sctpStreamParameters)
+    console.log(consumer.sctpStreamParameters);
     return {
-
       id: consumer.id,
       sctpStreamParameters: consumer.sctpStreamParameters,
-      dataProducerId: dataProducerId
-    }
+      dataProducerId: dataProducerId,
+    };
   }
 
+  async cloneParticipant({
+    roomId,
+    participant_id,
+    old_participant_id,
+  }: CloneParticipantDto) {
+    const room = await this.validateRoom(roomId);
+    const participant = await this.validateParticipant(
+      old_participant_id,
+      room,
+    );
+    const newParticipant = await participant.clone(participant_id);
+    room.addParticipant(newParticipant);
+    return {
+      status: true,
+    };
+  }
 
+  async stopScreenSharing({ participantId, roomId }: StopScreenSharingDto) {
+    const room = await this.validateRoom(roomId);
+    const participanat = await this.validateParticipant(participantId, room);
+    room.stopScreenSharing(participanat);
+    return {
+      status: true,
+    };
+  }
 }

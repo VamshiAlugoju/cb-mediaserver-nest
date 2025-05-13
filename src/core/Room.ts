@@ -24,7 +24,7 @@ interface IRoom {
   consumers: Map<string, types.Consumer<types.AppData>>;
   webrtcTransports: Map<string, types.WebRtcTransport<types.AppData>>;
   lastActive: number;
-  audioObserver: types.AudioLevelObserver
+  audioObserver: types.AudioLevelObserver;
 
   // Methods
   addOwner: (owner: Participant) => void;
@@ -58,7 +58,7 @@ interface IRoom {
   getDataProducerData(): {
     id: string;
     sctpStreamParameters: types.SctpStreamParameters | undefined;
-  }
+  };
 }
 
 export default class Room implements IRoom {
@@ -82,8 +82,8 @@ export default class Room implements IRoom {
   private timerId: NodeJS.Timeout | null = null;
   private idleTimerId: NodeJS.Timeout | null = null;
   private idleMinutes: number = 0;
-  private dataTransport: types.WebRtcTransport
-  private dataProducer: types.DataProducer<types.AppData>
+  private dataTransport: types.WebRtcTransport;
+  private dataProducer: types.DataProducer<types.AppData>;
   private roomIdleLimit = process.env.ROOMIDLELIMIT || 10;
   private audioprs = 0;
   constructor(
@@ -91,7 +91,7 @@ export default class Room implements IRoom {
     roomId: string,
     callId: string,
     workerId: string,
-    audioLevelObserver: types.AudioLevelObserver<types.AppData>
+    audioLevelObserver: types.AudioLevelObserver<types.AppData>,
   ) {
     this.router = router;
     this.roomId = roomId;
@@ -100,33 +100,32 @@ export default class Room implements IRoom {
     this.workerId = workerId;
     this.isActive = true;
     this.startLogging();
-    this.audioObserver = audioLevelObserver
-    this.createDataTransport()
-    this.registerEvents()
-
+    this.audioObserver = audioLevelObserver;
+    this.createDataTransport();
+    this.registerEvents();
   }
 
   private logger = new Logger('Room');
 
   async registerEvents() {
-    this.audioObserver.on("volumes", async (data) => {
+    this.audioObserver.on('volumes', async (data) => {
       const payload = JSON.stringify({
         type: 'audio-volumes',
-        volumes: data.map(v => ({
+        volumes: data.map((v) => ({
           producerId: v.producer.id,
           volume: v.volume,
         })),
       });
 
       try {
-        this.dataProducer.send(payload)
+        this.dataProducer.send(payload);
       } catch (err) {
         this.logger.error(`Failed to send volume data: ${err.message}`);
       }
-    })
-    this.audioObserver.on("silence", () => {
-      this.logger.warn(`silence emitted `)
-    })
+    });
+    this.audioObserver.on('silence', () => {
+      this.logger.warn(`silence emitted `);
+    });
   }
 
   async createDataTransport() {
@@ -139,17 +138,18 @@ export default class Room implements IRoom {
       enableSctp: true,
       numSctpStreams: { OS: 1024, MIS: 1024 },
       maxSctpMessageSize: 262144,
-    })
+    });
     this.dataProducer = await this.dataTransport.produceData({
       label: 'volume',
-      sctpStreamParameters: { streamId: 0, ordered: true, }
-    })
-
+      sctpStreamParameters: { streamId: 0, ordered: true },
+    });
   }
 
-
   getDataProducerData() {
-    return { id: this.dataProducer.id, sctpStreamParameters: this.dataProducer.sctpStreamParameters }
+    return {
+      id: this.dataProducer.id,
+      sctpStreamParameters: this.dataProducer.sctpStreamParameters,
+    };
   }
 
   log(data: any) {
@@ -180,9 +180,10 @@ export default class Room implements IRoom {
 
   startLogging() {
     //log the room stats every 30 seconds
-    // this.timerId = setInterval(() => {
-    //   this.log(this.getRoomStats());
-    // }, 30000);
+    this.timerId = setInterval(() => {
+      // this.log(this.getRoomStats());
+      console.log(this.participants.size);
+    }, 30000);
   }
 
   async addParticipant(participant: Participant): Promise<void> {
@@ -218,6 +219,8 @@ export default class Room implements IRoom {
       }
     });
   }
+
+  async cloneParticipant(participant: Participant, new_participantId: string) {}
 
   async createTransportForParticipant(
     participant: Participant,
@@ -261,8 +264,8 @@ export default class Room implements IRoom {
 
   async addProducer(producer: types.Producer) {
     this.producers.set(producer.id, producer);
-    if (producer.kind === "audio") {
-      await this.audioObserver.addProducer({ producerId: producer.id })
+    if (producer.kind === 'audio') {
+      await this.audioObserver.addProducer({ producerId: producer.id });
     }
   }
   async getProducer(producerId: string) {
@@ -276,6 +279,7 @@ export default class Room implements IRoom {
       kind: 'audio' | 'video';
       rtpParameters: types.RtpParameters;
       producerClientId: string;
+      isScreenSharer : boolean 
     };
     const participants = Array.from(this.participants.values());
     const initialProducers: MediasoupProducer[] = [];
@@ -289,6 +293,7 @@ export default class Room implements IRoom {
           kind: audioProducer.kind,
           rtpParameters: audioProducer.rtpParameters,
           producerClientId: participant.participantId,
+          isScreenSharer : participant.isScreenSharer
         });
       }
       if (videoProducer) {
@@ -298,8 +303,10 @@ export default class Room implements IRoom {
           kind: videoProducer.kind,
           rtpParameters: videoProducer.rtpParameters,
           producerClientId: participant.participantId,
+           isScreenSharer : participant.isScreenSharer
         });
       }
+
     });
     return initialProducers;
   }
@@ -358,7 +365,7 @@ export default class Room implements IRoom {
     this.consumers.clear();
     this.webrtcTransports.forEach((transport) => transport.close());
     this.webrtcTransports.clear();
-    this.audioObserver.close()
+    this.audioObserver.close();
     this.dataProducer.close();
     this.dataTransport.close();
     this.router.close();
@@ -395,6 +402,24 @@ export default class Room implements IRoom {
       pipeTransport.close();
       this.pipeTransports.delete(pipeTransportId);
     }
+  }
+
+  stopScreenSharing(participant: Participant) {
+    participant.stopScreenSharing();
+    this.participants.delete(participant.participantId);
+    this.updateActivity();
+    this.producers.forEach((producer, id) => {
+      if (producer.appData?.participantId === participant.participantId) {
+        producer.close();
+        this.producers.delete(id);
+      }
+    });
+    this.consumers.forEach((consumer, id) => {
+      if (consumer.appData?.participantId === participant.participantId) {
+        consumer.close();
+        this.consumers.delete(id);
+      }
+    });
   }
 }
 

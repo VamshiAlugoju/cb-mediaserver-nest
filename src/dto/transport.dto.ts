@@ -107,7 +107,6 @@ export class DataConsumerDto {
   @IsNotEmpty()
   roomId: string;
 
-
   @ApiProperty({
     description: 'ID of the participant',
     example: 'participant-67890',
@@ -115,7 +114,29 @@ export class DataConsumerDto {
   @IsString()
   @IsNotEmpty()
   participantId: string;
+}
 
+export class CloneParticipantDto {
+  @ApiProperty({ description: 'ID of the room', example: 'room-12345' })
+  @IsString()
+  @IsNotEmpty()
+  roomId: string;
+
+  @ApiProperty({
+    description: 'ID of the participant',
+    example: 'participant-67890',
+  })
+  @IsString()
+  @IsNotEmpty()
+  old_participant_id: string;
+
+  @ApiProperty({
+    description: 'ID of the participant',
+    example: 'participant-67890',
+  })
+  @IsString()
+  @IsNotEmpty()
+  participant_id: string;
 }
 
 export class UnpauseDto {
@@ -126,6 +147,21 @@ export class UnpauseDto {
   @IsString()
   @IsNotEmpty()
   consumerId: string;
+
+  @ApiProperty({ description: 'ID of the room', example: 'room-12345' })
+  @IsString()
+  @IsNotEmpty()
+  roomId: string;
+}
+
+export class StopScreenSharingDto {
+  @ApiProperty({
+    description: 'ID of the participant',
+    example: 'participanat-112233',
+  })
+  @IsString()
+  @IsNotEmpty()
+  participantId: string;
 
   @ApiProperty({ description: 'ID of the room', example: 'room-12345' })
   @IsString()

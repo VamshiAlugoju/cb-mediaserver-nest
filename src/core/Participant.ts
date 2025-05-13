@@ -7,6 +7,8 @@ import {
 
 export default class Participant implements IParticipant {
   participantId: string;
+  clonedParticipantId?: string;
+  isScreenSharer :boolean = false ;
   userId: string;
   roomId: string;
   producerTransport: types.WebRtcTransport<types.AppData> | null = null;
@@ -27,7 +29,7 @@ export default class Participant implements IParticipant {
   }
   private logger = new Logger('Participant');
 
-  logData() { }
+  logData() {}
 
   log(data: any) {
     this.logger.log(data);
@@ -115,5 +117,21 @@ export default class Participant implements IParticipant {
     });
     this.producers.video = producer;
     return producer;
+  }
+
+  async clone(newParticipatId: string) {
+    const clone = new Participant(this.userId, this.roomId, newParticipatId);
+    clone.producerTransport = this.producerTransport;
+    clone.consumerTransport = this.consumerTransport;
+    clone.isConnected = true;
+    clone.clonedParticipantId = this.participantId;
+    clone.isScreenSharer = true;
+    return clone;
+  }
+  stopScreenSharing() {
+    this.producers.audio?.close();
+    this.producers.video?.close();
+    this.consumers.forEach((consumer) => consumer.close());
+    this.consumers.clear();
   }
 }

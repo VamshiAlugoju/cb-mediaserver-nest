@@ -10,7 +10,11 @@ import {
 import { MediaService } from './mediaserver.service';
 import { AppService } from './main.service';
 import { StartCallDto } from './dto/startcall.dto';
-import { AnswerCallDto, clearParticipantDto, ShareScreenDto } from './dto/answercall.dto';
+import {
+  AnswerCallDto,
+  clearParticipantDto,
+  ShareScreenDto,
+} from './dto/answercall.dto';
 import { CloseRoomDto } from './dto/closeRoom.dto';
 import { TransportService } from './transport.service';
 import {
@@ -20,6 +24,8 @@ import {
   ProduceDto,
   UnpauseDto,
   DataConsumerDto,
+  CloneParticipantDto,
+  StopScreenSharingDto,
 } from './dto/transport.dto';
 import { CreateroomDto } from './dto/createRoom.dto';
 
@@ -29,7 +35,7 @@ export class AppController {
     private readonly mediaService: MediaService,
     private readonly appService: AppService,
     private readonly transportService: TransportService,
-  ) { }
+  ) {}
 
   @Post('start_call')
   @UsePipes(new ValidationPipe({ whitelist: true }))
@@ -125,5 +131,15 @@ export class AppController {
   @UsePipes(new ValidationPipe({ whitelist: true }))
   getDataProducer(@Body() data: DataConsumerDto) {
     return this.transportService.consumeDataConsumer(data);
+  }
+  @Post('clone_participant')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  cloneParticipant(@Body() data: CloneParticipantDto) {
+    return this.transportService.cloneParticipant(data);
+  }
+  @Post('stop_screensharing')
+  @UsePipes(new ValidationPipe({ whitelist: true }))
+  stop_screensharing(@Body() data: StopScreenSharingDto) {
+    return this.transportService.stopScreenSharing(data);
   }
 }
